@@ -6,7 +6,7 @@ type User struct {
 	Password   string `json:"password" gorm:"not null;column:password"`
 	Gender     string `json:"gender" gorm:"not null;column:gender"`
 	QQ         string `json:"qq" gorm:"not null;column:qq"`
-	Integral   uint   `json:"integral" gorm:"not null;column:integral"`
+	Integral   uint   `json:"integral" gorm:"not null;column:integral;default:0"`
 	CreateTime int64  `json:"createTime" gorm:"autoCreateTime:nano;column:create_time"`
 	UpdateTime int64  `json:"updateTime" gorm:"autoCreateTime:nano;column:create_time"`
 }
