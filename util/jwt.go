@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
@@ -10,8 +11,8 @@ type JWTConfig struct {
 }
 
 type CustomClaims struct {
-	Id   uint
-	Name string
+	Id   uint   `json:"id"`
+	Name string `json:"name"`
 	jwt.RegisteredClaims
 }
 
@@ -27,16 +28,18 @@ func init() {
 
 // GenerateTokenWithHS256 使用HS256算法生成token
 func GenerateTokenWithHS256(name string, id uint) (string, error) {
+	deltaTime, _ := time.ParseDuration("-1m")
 	claims := CustomClaims{
 		Id:   id,
 		Name: name,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer: "ERIC",
 			ExpiresAt: &jwt.NumericDate{
-				time.Now(),
+				Time: time.Now().Add(time.Hour * 15),
 			},
+			//生效时间
 			NotBefore: &jwt.NumericDate{
-				time.Now(),
+				Time: time.Now().Add(deltaTime),
 			},
 		},
 	}
@@ -47,12 +50,16 @@ func GenerateTokenWithHS256(name string, id uint) (string, error) {
 
 // ParseToken 解析token，返回用户的id
 func ParseToken(tokenString string) (uint, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return config.Secret, nil
 	})
+	claims, ok := token.Claims.(*CustomClaims)
+	if !ok {
+		return 0, fmt.Errorf("断言失败, 因为token.Claims is %T, cann't convert into CustomClaims type", token.Claims)
+	}
 	//如果token解析成功
 	if token.Valid {
-		return token.Claims.(*CustomClaims).Id, nil
+		return claims.Id, nil
 	} else {
 		//解析出现错误, 直接返回错误，在上层函数处理相关的错误
 		return 0, err
@@ -61,13 +68,16 @@ func ParseToken(tokenString string) (uint, error) {
 
 // RefreshToken  刷新token，token一旦签发是不可变的，所以需要重新定义结构体进行生成
 func RefreshToken(tokenString string) (string, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return config.Secret, nil
 	})
 	if err != nil {
 		return "", nil
 	}
-	claims := token.Claims.(*CustomClaims)
+	claims, ok := token.Claims.(*CustomClaims)
+	if !ok {
+		return "", fmt.Errorf("断言失败, 因为token.Claims is %T, cann't convert into CustomClaims type\n", token.Claims)
+	}
 	return GenerateTokenWithHS256(claims.Name, claims.Id)
 }
 
