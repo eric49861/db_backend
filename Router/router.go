@@ -24,7 +24,7 @@ func RegisteRouter(r *gin.Engine) {
 		// 其他的一些工具接口
 		tool := v1.Group("/3")
 		{
-			tool.GET("/valid-token", service.ValidToken())
+			tool.POST("/valid-token", service.ValidToken())
 		}
 	}
 }
