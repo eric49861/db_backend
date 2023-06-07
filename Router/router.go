@@ -19,6 +19,11 @@ func RegisteRouter(r *gin.Engine) {
 		{
 			authentication.Use(middle.JWTAuthMiddleware())
 			authentication.GET("/get-all-group", service.GetGroupList())
+			authentication.POST("/modify-user-info", service.ModifyUserInfo())
+			authentication.GET("/getAllPost", service.GetAllPost())
+			authentication.GET("/getUser", service.GetUserById())
+			authentication.GET("/get-comment", service.GetCommentsByPostId())
+			authentication.POST("/save-post-comment", service.SaveComment())
 		}
 
 		// 其他的一些工具接口

@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
+	dao "studygroup-gin/DAO"
 	db "studygroup-gin/Database/mysql"
 	model "studygroup-gin/Model"
 	"studygroup-gin/util"
@@ -30,7 +32,7 @@ func DoLogin() gin.HandlerFunc {
 			return
 		}
 		// 根据用户信息生成token并返回
-		tokenString, err := util.GenerateTokenWithHS256(user.Name, user.Id)
+		tokenString, err := util.GenerateTokenWithHS256(user.UserName, user.Id)
 		if err != nil {
 			panic(err)
 		} else {
@@ -59,7 +61,7 @@ func DoSignup() gin.HandlerFunc {
 			return
 		}
 		user := model.User{
-			Name:     context.PostForm("username"),
+			UserName: context.PostForm("username"),
 			Password: util.EncryptWithMD5(context.PostForm("password")),
 			Gender:   context.PostForm("gender"),
 			QQ:       context.PostForm("qq"),
@@ -76,5 +78,42 @@ func DoSignup() gin.HandlerFunc {
 				"msg":  "发生为止错误",
 			})
 		}
+	}
+}
+
+// ModifyUserInfo 更新用户的个人信息
+func ModifyUserInfo() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		//获取前端提交的表单信息并封装成对象
+		id, _ := strconv.ParseUint(context.PostForm("id"), 10, 64)
+		username := context.PostForm("username")
+		age, _ := strconv.ParseUint(context.PostForm("age"), 10, 64)
+		gender := context.PostForm("gender")
+		occupation := context.PostForm("occupation")
+		signature := context.PostForm("signature")
+
+		user, _ := dao.GetUserById(id)
+		user.UserName = username
+		user.Age = age
+		user.Gender = gender
+		user.Occupation = occupation
+		user.Signature = signature
+
+		//调用userdao中的方法更新用户
+		err := dao.UpdateUserInfo(user)
+
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"code": http.StatusInternalServerError,
+				"msg":  "用户信息更新失败",
+			})
+			return
+		}
+		newUser, _ := dao.GetUserById(id)
+		context.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"msg":  "用户信息更新成功",
+			"user": newUser,
+		})
 	}
 }

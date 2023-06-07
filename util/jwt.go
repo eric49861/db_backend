@@ -11,7 +11,7 @@ type JWTConfig struct {
 }
 
 type CustomClaims struct {
-	Id   uint   `json:"id"`
+	Id   uint64 `json:"id"`
 	Name string `json:"name"`
 	jwt.RegisteredClaims
 }
@@ -27,7 +27,7 @@ func init() {
 }
 
 // GenerateTokenWithHS256 使用HS256算法生成token
-func GenerateTokenWithHS256(name string, id uint) (string, error) {
+func GenerateTokenWithHS256(name string, id uint64) (string, error) {
 	deltaTime, _ := time.ParseDuration("-1m")
 	claims := CustomClaims{
 		Id:   id,
@@ -49,7 +49,7 @@ func GenerateTokenWithHS256(name string, id uint) (string, error) {
 }
 
 // ParseToken 解析token，返回用户的id
-func ParseToken(tokenString string) (uint, error) {
+func ParseToken(tokenString string) (uint64, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return config.Secret, nil
 	})

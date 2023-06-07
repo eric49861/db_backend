@@ -14,7 +14,7 @@ import (
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		//检查请求头中是否携带了token
-		tokenString := context.Request.Header.Get("Authentication")
+		tokenString := context.Request.Header.Get("Token")
 		//如果没有携带，则返回未认证错误
 		if strings.Compare(tokenString, "") == 0 {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
